@@ -19,8 +19,8 @@ class CampshareTopController extends Controller
     //検索結果の一括表示件数：10件
     $perPage = 10;
 
-    //最新記事の取得件数：200件
-    $record_limit = 200;
+    //最新記事の取得件数：100件
+    $record_limit = 100;
   
     //クエリ作成
     $query = VwArticleList::query();
