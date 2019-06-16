@@ -47,26 +47,46 @@ class CampshareDetailController extends Controller
   //Postアクセスの場合の処理
   public function postIndex(Request $request)
   {
+    $filename = "";
     if(isset($request->image_url))
     {
       // バリデーションルール
       $rules = [
           'image_url' => 'image|max:6000',
+          'nickName' => 'required|max:20',
+          'comment' => 'required|max:300',
       ];
-      //バリデーションされているファイルは (jpeg, png, bmp, gif, or svg)にしないといけません。
-      //3000Kb以下のファイルにする必要です。
-
       // バリデーターにルールとインプットを入れる
       $validation = Validator::make($request->all(), $rules);
 
       // バリデーションチェックを行う
       if ($validation->fails()) {
-      
-          return back()->with('message', '戻りました！');
+             return back()->withErrors($validation)->withInput();
+          // return back()->with('message', '戻りました！');
       }
+      $date = date( "Ymd" );
+      $directory_path_full = storage_path()."/app/public/makishare/".$date."/";
+      $directory_path_short = "public/makishare/".$date."/";
       
+      //フォルダを作成する
+      //「$directory_path」で指定されたディレクトリが存在するか確認
+      if(file_exists($directory_path_full)){
+          //存在したときの処理
+          echo "作成しようとしたディレクトリは既に存在します";
+      }else{
+          //存在しないときの処理（「$directory_path」で指定されたディレクトリを作成する）
+          if(mkdir($directory_path_full, 0777)){
+              //作成したディレクトリのパーミッションを確実に変更
+              chmod($directory_path_full, 0777);
+              //作成に成功した時の処理
+              echo "作成に成功しました";
+          }else{
+              //作成に失敗した時の処理
+              echo "作成に失敗しました";
+          }
+      }
       //ファイルを保存する
-      $filename = $request->image_url->store('public/makishare');
+      $filename = $request->image_url->store($directory_path_short);
     }
     
     $comment = $request->comment;
@@ -113,7 +133,9 @@ class CampshareDetailController extends Controller
       $data[0]->email;
     $title = '【薪シェア】コメントが付きました';
     $text = $data[0]->nickName."さんが投稿した内容にコメントが付きました";
-    $to = 'jvnts-10-@docomo.ne.jp';
+    //$to = 'jvnts0630@gmail.com';
+    $to = $data[0]->email;
+    
     $link = $request->root()."/campsharedetail/".$subNo;
     Mail::to($to)->send(new SampleNotification($title, $text,$link));
     
@@ -135,9 +157,13 @@ class CampshareDetailController extends Controller
       if(isset($data)){
         // ストレージの中なら直接ダウンロードできる
         
-        $headers = ['Content-Type' => 'image/png'];
-        $dlFilename = $subNo."_".$subBr.".png";
+        //$headers = ['Content-Type' => 'image/png'];
+        // $dlFilename = $subNo."_".$subBr.".png";
         // return Storage::download($data->filefullpath,$dlFilename , $headers);
+        
+        $ext = pathinfo($data->filefullpath, PATHINFO_EXTENSION);
+        $dlFilename = $subNo."_".$subBr.".".$ext;
+        // $dlFilename = $data->nickName."_".$subNo."_".$subBr.".".$ext;
         return Storage::download($data->filefullpath, $dlFilename);
       }
     }
