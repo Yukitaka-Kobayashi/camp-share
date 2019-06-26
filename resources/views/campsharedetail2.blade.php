@@ -10,6 +10,15 @@
 @include('campshareheader')
  
 @section('content')
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 	<div class ="hh" align="left">
 		<i class="far fa-list-alt fa-fw"></i>投稿詳細
 	</div><br>
@@ -44,7 +53,7 @@
       <td>{{$data->siteURL}}</td>
     </tr>
     <tr>
-      <th>キャンプ場情報(住所)</th>
+      <th>キャンプ場(住所)</th>
       <td>{{$data->siteAddress}}</td>
     </tr>
     <tr>
@@ -63,7 +72,7 @@
     {{$row_commentdata->comDate}} - 
     {{$row_commentdata->nickName}} >> 
     {{$row_commentdata->comment}}
-  @if(isset($row_commentdata->filefullpath))
+  @if(isset($row_commentdata->filefullpath) && $row_commentdata->filefullpath != "")
     <input type="button" onclick="location.href='/campsharedl?subNo={{$row_commentdata->subNo}}&subBr={{$row_commentdata->subBr}}'" value="画像あり">
 	@endif
     </br>
@@ -86,6 +95,7 @@
 <div class="form-image_url">
     <input type="file" name="image_url"> 
 </div>
+</br>
   <button type="submit" name="add">
    投稿する
   </button>
